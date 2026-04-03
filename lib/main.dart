@@ -1,26 +1,23 @@
 // lib/main.dart
+// কাজ: অ্যাপ শুরু হয় এখান থেকে। Firebase initialize করে এবং কোন স্ক্রিন দেখাবে সেটা decide করে।
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
-import 'auth/login_screen.dart';
-import 'home/home_screen.dart';
+import 'providers/user_provider.dart';
+import 'providers/mentor_provider.dart';
+import 'screens/home/home_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'utils/theme.dart';
+import 'widgets/common/loading_widget.dart';
 
 void main() async {
-  // 🔴 WidgetsFlutterBinding.ensureInitialized() কেন?
-  // Flutter এ main() ফাংশন asynchronous হওয়ার আগে
-  // WidgetsFlutterBinding initialize করা প্রয়োজন
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // 🔥 Firebase Initialize
-  // Firebase কে start করতে হবে আমাদের অ্যাপের শুরুতে
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
-  // অ্যাপ রান করুন
   runApp(const MyApp());
 }
 
@@ -29,33 +26,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🔄 MultiProvider: একাধিক Provider একসাথে ব্যবহার করার জন্য
     return MultiProvider(
       providers: [
-        // AuthProvider: ইউজারের লগইন স্টেট মেইনটেইন করে
+        // 🔐 AuthProvider: লগইন/লগআউট manage করে
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        
+        // 👤 UserProvider: ইউজারের ডাটা manage করে
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        
+        // 👨‍🏫 MentorProvider: মেন্টরদের লিস্ট manage করে
+        ChangeNotifierProvider(create: (_) => MentorProvider()),
       ],
       child: MaterialApp(
         title: 'Mentora',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          fontFamily: 'GoogleFonts.poppins',
-        ),
+        theme: AppTheme.lightTheme, // 🎨 থিম সেটিংস
+        debugShowCheckedModeBanner: false,
         home: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
-            // 🧠 লজিক: ইউজার লগইন করলে Home Screen দেখাবে
-            // না করলে Login Screen দেখাবে
+            // ইউজার লগইন থাকলে home screen, না থাকলে login screen
             if (authProvider.isLoading) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
+              return const LoadingWidget();
             }
-            
-            if (authProvider.user != null) {
-              return const HomeScreen();
-            }
-            
-            return const LoginScreen();
+            return authProvider.user != null 
+                ? const HomeScreen() 
+                : const LoginScreen();
           },
         ),
       ),
