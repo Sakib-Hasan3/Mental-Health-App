@@ -11,14 +11,12 @@ class AppTheme {
     primaryColor: AppColors.primaryColor,
     scaffoldBackgroundColor: AppColors.backgroundColor,
     fontFamily: GoogleFonts.poppins().fontFamily,
-    
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
       foregroundColor: AppColors.textPrimary,
       elevation: 0,
       centerTitle: true,
     ),
-    
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primaryColor,
@@ -33,7 +31,6 @@ class AppTheme {
         ),
       ),
     ),
-    
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
@@ -43,7 +40,7 @@ class AppTheme {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.textLight.withOpacity(0.3)),
+        borderSide: BorderSide(color: AppColors.textLight.withOpacity(0.2)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -55,7 +52,6 @@ class AppTheme {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
-    
     cardTheme: CardThemeData(
       color: AppColors.cardColor,
       elevation: 2,
@@ -64,7 +60,7 @@ class AppTheme {
       ),
     ),
   );
-  
+
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: AppColors.primaryColor,

@@ -1,106 +1,116 @@
 // lib/providers/auth_provider.dart
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../services/firestore_service.dart';
+import '../services/auth_service.dart';
 import '../models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
-  // 🔥 Firebase Auth instance
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirestoreService _firestoreService = FirestoreService();
+  final AuthService _authService = AuthService();
   
-  // 📦 State variables
-  User? _user;
+  UserModel? _user;
   bool _isLoading = false;
+  String? _errorMessage;
   
-  // Getters (এই ভেরিয়েবলগুলোর মান বাইরে থেকে পড়তে পারবে কিন্তু পরিবর্তন করতে পারবে না)
-  User? get user => _user;
+  UserModel? get user => _user;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  bool get isAuthenticated => _user != null;
   
-  // 🏗️ Constructor: অ্যাপ start হওয়ার সাথে সাথে user check করে
   AuthProvider() {
-    _checkUserStatus();
+    _checkAuthState();
   }
   
-  // 👤 ইউজারের লগইন স্টেট চেক করা
-  void _checkUserStatus() {
-    _auth.authStateChanges().listen((User? user) {
-      _user = user;
-      notifyListeners(); // UI update করার জন্য notify করে
+  void _checkAuthState() {
+    _authService.userStateChanges.listen((firebaseUser) async {
+      if (firebaseUser != null) {
+        _isLoading = true;
+        notifyListeners();
+        
+        final doc = await _authService.getUserDocument(firebaseUser.uid);
+        
+        if (doc.exists) {
+          _user = UserModel.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+        }
+        
+        _isLoading = false;
+        notifyListeners();
+      } else {
+        _user = null;
+        notifyListeners();
+      }
     });
   }
   
-  // 📧 Email/Password এ Sign Up
-  Future<bool> signUpWithEmail({
-    required String email,
-    required String password,
-    required String name,
-    required String phone,
-  }) async {
+  Future<bool> loginWithEmail(String email, String password) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     
     try {
-      // 1. Firebase Auth এ ইউজার তৈরি করা
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      _user = await _authService.signInWithEmail(email: email, password: password);
+      _isLoading = false;
+      notifyListeners();
+      return _user != null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+  
+  Future<bool> registerWithEmail(String email, String password, String name, String phone) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    
+    try {
+      _user = await _authService.signUpWithEmail(
         email: email,
         password: password,
-      );
-      
-      // 2. Firestore এ ইউজারের ডিটেইল সেভ করা
-      UserModel userModel = UserModel(
-        id: userCredential.user!.uid,
-        email: email,
         name: name,
         phone: phone,
-        role: 'user',
-        createdAt: DateTime.now(),
       );
-      
-      await _firestoreService.saveUser(userModel);
-      
       _isLoading = false;
       notifyListeners();
-      return true;
-      
+      return _user != null;
     } catch (e) {
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      print("Sign up error: $e");
       return false;
     }
   }
   
-  // 📧 Email/Password এ Sign In
-  Future<bool> signInWithEmail({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> loginWithGoogle() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     
     try {
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      
+      _user = await _authService.signInWithGoogle();
       _isLoading = false;
       notifyListeners();
-      return true;
-      
+      return _user != null;
     } catch (e) {
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
   
-  // 🚪 Sign Out
-  Future<void> signOut() async {
-    await _auth.signOut();
+  Future<void> logout() async {
+    await _authService.signOut();
     _user = null;
+    notifyListeners();
+  }
+  
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _authService.sendPasswordResetEmail(email);
+  }
+  
+  void clearError() {
+    _errorMessage = null;
     notifyListeners();
   }
 }
