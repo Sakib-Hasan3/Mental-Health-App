@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "552793619674",
+    "project_id": "mentora-eb66b",
+    "storage_bucket": "mentora-eb66b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552793619674:android:2d115edf1a2bcee07ef9e3",
+        "android_client_info": {
+          "package_name": "com.example.mental"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArlKKl9Qo2wA_O9nwWtAhLPmHegylHa-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
